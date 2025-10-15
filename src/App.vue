@@ -3,6 +3,24 @@
   import originalTools from './data/todo.js'
 
   const todos = ref(originalTools);
+  const title = ref("")
+  const errorMessage = ref("");
+
+  function addTodo() {
+    if(!title.value) {
+      errorMessage.value = "Title should not be empty";
+
+      return;
+    }
+
+    todos.value.push({
+      id: Date.now(),
+      title: title.value,
+      completed: false,
+    });
+
+    title.value = "";
+  }
 
 </script>
 
@@ -15,29 +33,26 @@
         <button
             type="button"
             class="todoapp__toggle-all active"
-            data-cy="ToggleAllButton"
         ></button>
 
-        <form>
+        <form @submit.prevent="addTodo">
           <input
-              data-cy="NewTodoField"
               type="text"
               class="todoapp__new-todo"
               placeholder="What needs to be done?"
+              v-model="title"
+              @input="errorMessage = ''"
           />
         </form>
       </header>
 
-      <section class="todoapp__main" data-cy="TodoList">
+      <section class="todoapp__main">
         <div class="todo" v-for="(todo, i) of todos" :key="todo.id" :class="{completed: todo.completed}">
           <label class="todo__status-label">
             <input
-                data-cy="TodoStatus"
                 type="checkbox"
                 class="todo__status"
-                :checked="todo.completed"
-                @change="todo.completed = !todo.completed"
-
+                v-model="todo.completed"
             />
           </label>
 
@@ -53,7 +68,7 @@
             <button class="todo__remove" @click="todos.splice(i, 1)">x</button>
           </template>
 
-          <div data-cy="TodoLoader" class="modal overlay" :class="{ 'is-active': false }">
+          <div class="modal overlay" :class="{ 'is-active': false }">
             <div class="modal-background has-background-white-ter" />
             <div class="loader"></div>
           </div>
@@ -61,17 +76,16 @@
       </section>
 
       <!-- Hide the footer if there are no todos -->
-      <footer class="todoapp__footer" data-cy="Footer">
-          <span class="todo-count" data-cy="TodosCounter">
+      <footer class="todoapp__footer">
+          <span class="todo-count">
             3 items left
           </span>
 
         <!-- Active link should have the 'selected' class -->
-        <nav class="filter" data-cy="Filter">
+        <nav class="filter">
           <a
-              href="#/"
-              class="filter__link selected"
-              data-cy="FilterLinkAll"
+            href="#/"
+            class="filter__link selected"
           >
             All
           </a>
@@ -79,7 +93,6 @@
           <a
               href="#/active"
               class="filter__link"
-              data-cy="FilterLinkActive"
           >
             Active
           </a>
@@ -87,7 +100,6 @@
           <a
               href="#/completed"
               class="filter__link"
-              data-cy="FilterLinkCompleted"
           >
             Completed
           </a>
@@ -97,7 +109,6 @@
         <button
             type="button"
             class="todoapp__clear-completed"
-            data-cy="ClearCompletedButton"
         >
           Clear completed
         </button>
@@ -107,21 +118,21 @@
     <!-- DON'T use conditional rendering to hide the notification -->
     <!-- Add the 'hidden' class to hide the message smoothly -->
     <div
-        data-cy="ErrorNotification"
+        v-if="errorMessage"
         class="notification is-danger is-light has-text-weight-normal"
     >
-      <button data-cy="HideErrorButton" type="button" class="delete" ></button>
-
+      <button type="button" class="delete" @click="errorMessage = ''" ></button>
+      {{errorMessage}}
       <!-- show only one message at a time -->
-      Unable to load todos
-      <br />
-      Title should not be empty
-      <br />
-      Unable to add a todo
-      <br />
-      Unable to delete a todo
-      <br />
-      Unable to update a todo
+<!--      Unable to load todos-->
+<!--      <br />-->
+<!--      Title should not be empty-->
+<!--      <br />-->
+<!--      Unable to add a todo-->
+<!--      <br />-->
+<!--      Unable to delete a todo-->
+<!--      <br />-->
+<!--      Unable to update a todo-->
     </div>
   </div>
  </template>
