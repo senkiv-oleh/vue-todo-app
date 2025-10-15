@@ -1,5 +1,9 @@
 <script setup>
-  import todos from './data/todo.js';
+  import { ref } from 'vue';
+  import originalTools from './data/todo.js'
+
+  const todos = ref(originalTools);
+
 </script>
 
 <template>
@@ -25,13 +29,14 @@
       </header>
 
       <section class="todoapp__main" data-cy="TodoList">
-        <div class="todo" v-for="todo of todos" :key="todo.id" :class="{completed: todo.completed}">
+        <div class="todo" v-for="(todo, i) of todos" :key="todo.id" :class="{completed: todo.completed}">
           <label class="todo__status-label">
             <input
                 data-cy="TodoStatus"
                 type="checkbox"
                 class="todo__status"
                 :checked="todo.completed"
+                @change="todo.completed = !todo.completed"
 
             />
           </label>
@@ -45,7 +50,7 @@
 
           <template v-else="false">
             <span class="todo__title"> {{todo.title}}</span>
-            <button class="todo__remove">x</button>
+            <button class="todo__remove" @click="todos.splice(i, 1)">x</button>
           </template>
 
           <div data-cy="TodoLoader" class="modal overlay" :class="{ 'is-active': false }">
