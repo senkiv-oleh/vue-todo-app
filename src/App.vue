@@ -1,10 +1,15 @@
 <script setup>
-  import { ref } from 'vue';
+  import { ref, computed } from 'vue';
   import originalTools from './data/todo.js'
 
   const todos = ref(originalTools);
   const title = ref("")
   const errorMessage = ref("");
+  const status = ref('all')
+
+  const activeTodos = computed(() =>
+      todos.value.filter((todo) => !todo.completed)
+  );
 
   function addTodo() {
     if(!title.value) {
@@ -22,6 +27,18 @@
     title.value = "";
   }
 
+  const visibleTodos = computed(() => {
+    if (status.value === 'active') {
+      return activeTodos.value
+    }
+
+    if (status.value === 'completed') {
+      return todos.value.filter((todo) => todo.completed)
+    }
+
+    return todos.value;
+  })
+
 </script>
 
 <template>
@@ -31,8 +48,10 @@
     <div class="todoapp__content">
       <header class="todoapp__header">
         <button
+            v-if="todos.length > 0"
             type="button"
             class="todoapp__toggle-all active"
+            :class="{ active: activeTodos.length === 0 }"
         ></button>
 
         <form @submit.prevent="addTodo">
@@ -47,7 +66,7 @@
       </header>
 
       <section class="todoapp__main">
-        <div class="todo" v-for="(todo, i) of todos" :key="todo.id" :class="{completed: todo.completed}">
+        <div class="todo" v-for="(todo, i) of visibleTodos" :key="todo.id" :class="{completed: todo.completed}">
           <label class="todo__status-label">
             <input
                 type="checkbox"
@@ -78,14 +97,16 @@
       <!-- Hide the footer if there are no todos -->
       <footer class="todoapp__footer">
           <span class="todo-count">
-            3 items left
+            {{ activeTodos.length }} items left
           </span>
 
         <!-- Active link should have the 'selected' class -->
         <nav class="filter">
           <a
             href="#/"
-            class="filter__link selected"
+            class="filter__link"
+            :class="{ selected: status === 'all'}"
+            @click="status = 'all'"
           >
             All
           </a>
@@ -93,6 +114,8 @@
           <a
               href="#/active"
               class="filter__link"
+              :class="{ selected: status === 'active' }"
+              @click="status = 'active'"
           >
             Active
           </a>
@@ -100,6 +123,8 @@
           <a
               href="#/completed"
               class="filter__link"
+              :calss="{ selected: atatus === 'completed' }"
+              @click=" status = 'completed' "
           >
             Completed
           </a>
@@ -109,6 +134,8 @@
         <button
             type="button"
             class="todoapp__clear-completed"
+            :disabled="todos.length === activeTodos.length"
+            @click="todos = activeTodos"
         >
           Clear completed
         </button>
