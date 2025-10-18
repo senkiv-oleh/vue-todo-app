@@ -1,11 +1,29 @@
 <script setup>
-  import { ref, computed } from 'vue';
-  import originalTools from './data/todo.js'
+  import { ref, onBeforeMount, computed, watch } from 'vue';
 
-  const todos = ref(originalTools);
+  const todos = ref([])
   const title = ref("")
   const errorMessage = ref("");
   const status = ref('all')
+
+  watch(
+      todos,
+      newTodos => {
+        localStorage.setItem('todos', JSON.stringify(newTodos))
+      },
+      {deep: true}
+  )
+
+  onBeforeMount(() => {
+    try {
+      todos.value = JSON.parse(localStorage.getItem('todos'))
+    } catch (error) {
+    }
+
+    if (!Array.isArray(todos.value)) {
+      todos.value = []
+    }
+  })
 
   const activeTodos = computed(() =>
       todos.value.filter((todo) => !todo.completed)
