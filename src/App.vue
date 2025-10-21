@@ -83,15 +83,20 @@ const visibleTodos = computed(() => {
         </form>
       </header>
 
-      <section class="todoapp__main">
+      <TransitionGroup
+        tag="section"
+        name="todolist"
+        class="todoapp__main"
+        v-if="todos.length > 0"
+      >
         <TodoItem
           v-for="todo in visibleTodos"
           :key="todo.id"
           :todo="todo"
           @delete="todos.splice(todos.indexOf(todo), 1)"
-          @update="todos[todos.indexOf(todo)] = $event"
+          @update="Object.assign(todo, $event)"
         />
-      </section>
+      </TransitionGroup>
 
       <!-- Hide the footer if there are no todos -->
       <footer class="todoapp__footer">
@@ -123,4 +128,17 @@ const visibleTodos = computed(() => {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+.todolist-enter-active,
+.todolist-leave-active {
+  max-height: 60px;
+  transition: all 0.5s ease;
+}
+
+.todolist-enter-form,
+.todolist-leave-to {
+  opasity: 0;
+  max-height: 0;
+  transform: scaleY(0);
+}
+</style>
