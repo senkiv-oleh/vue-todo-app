@@ -9,6 +9,13 @@ const title = ref("");
 const errorMessage = ref("");
 const status = ref("all");
 
+watch(
+    todos,
+    (newTodos) => {
+      localStorage.setItem("todos", JSON.stringify(newTodos));
+    },
+    {deep: true},
+);
 
 onMounted(async () => {
   todos.value = await todoApi.getTodos();
@@ -24,8 +31,6 @@ const addTodo = async () => {
 
     return;
   }
-
-  const newTodo = await todoApi.createTodo(title.value);
 
   todos.value.push(newTodo);
   title.value = "";
