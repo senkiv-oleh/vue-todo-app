@@ -131,13 +131,15 @@ const visibleTodos = computed(() => {
 
     <!-- DON'T use conditional rendering to hide the notification -->
     <!-- Add the 'hidden' class to hide the message smoothly -->
-    <div
-        v-if="errorMessage"
-        class="notification is-danger is-light has-text-weight-normal"
-    >
-      <button type="button" class="delete" @click="errorMessage = ''"></button>
-      {{ errorMessage }}
-    </div>
+    <Message class="is-danger" :hidden="!errorMessage">
+      <template #header>
+        <p>Server Error</p>
+      </template>
+
+      <template #default>
+        <p>{{ errorMessage }}</p>
+      </template>
+    </Message>
   </div>
 </template>
 
