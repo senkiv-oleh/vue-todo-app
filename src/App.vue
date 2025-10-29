@@ -9,7 +9,6 @@ const title = ref("");
 const errorMessage = ref("");
 const status = ref("all");
 
-
 onMounted(async () => {
   todos.value = await todoApi.getTodos();
 });
@@ -24,8 +23,7 @@ const addTodo = async () => {
 
     return;
   }
-
-  const newTodo = await createTodo(title.value);
+  const newTodo = await todoApi.createTodo(title.value);
 
   todos.value.push(newTodo);
   title.value = "";
