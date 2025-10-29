@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from "vue";
 import StatusFilter from "@/components/StatusFilter.vue";
 import TodoItem from "@/components/TodoItem.vue";
 import * as todoApi from '@/api/todos';
+import Message from "@/components/Message.vue";
 
 const todos = ref([]);
 const title = ref("");
@@ -10,7 +11,11 @@ const errorMessage = ref("");
 const status = ref("all");
 
 onMounted(async () => {
-  todos.value = await todoApi.getTodos();
+  try {
+    todos.value = await todoApi.getTodos();
+  } catch (error) {
+    errorMessage.value = 'Unable to load todos';
+  }
 });
 
 const activeTodos = computed(() =>
@@ -23,24 +28,36 @@ const addTodo = async () => {
 
     return;
   }
-  const newTodo = await todoApi.createTodo(title.value);
 
-  todos.value.push(newTodo);
-  title.value = "";
+  try {
+    const newTodo = await todoApi.createTodo(title.value);
+
+    todos.value.push(newTodo);
+    title.value = "";
+  } catch (error) {
+    errorMessage.value = 'Unable to add todo';
+  }
 }
 
 const deleteTodo = async todoId => {
-  await todoApi.deleteTodo(todoId);
-  todos.value = todos.value.filter(todo => todoId !== todo.id);
+  try {
+    await todoApi.deleteTodo(todoId);
+    todos.value = todos.value.filter(todo => todoId !== todo.id);
+  } catch (error) {
+    errorMessage.value = 'Unable to delete a todo';
+  }
 };
 
 const updateTodo = async ({id, title, completed}) => {
-  const updatedTodo = await todoApi.updateTodo({id, title, completed});
-  const currentTodo = todos.value.find(todo => todo.id === id);
+  try {
+    const updatedTodo = await todoApi.updateTodo({id, title, completed});
+    const currentTodo = todos.value.find(todo => todo.id === id);
 
-  Object.assign(currentTodo, updatedTodo);
+    Object.assign(currentTodo, updatedTodo);
+  } catch (error) {
+    errorMessage.value = 'Unable to update a todo';
+  }
 };
-
 
 const visibleTodos = computed(() => {
   if (status.value === "active") {
