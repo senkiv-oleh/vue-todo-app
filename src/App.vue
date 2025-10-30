@@ -7,14 +7,14 @@ import Message from "@/components/Message.vue";
 
 const todos = ref([]);
 const title = ref("");
-const errorMessage = ref("");
+const errorMessage = ref(null);
 const status = ref("all");
 
 onMounted(async () => {
   try {
     todos.value = await todoApi.getTodos();
   } catch (error) {
-    errorMessage.value = 'Unable to load todos';
+    errorMessage.value.show('Unable to load todos');
   }
 });
 
@@ -23,19 +23,18 @@ const activeTodos = computed(() =>
 );
 
 const addTodo = async () => {
-  if (!title.value) {
-    errorMessage.value = "Title should not be empty";
-
+  if (title.value.trim().length < 1) {
+    errorMessage.value.show('Title should not be empty');
     return;
   }
 
   try {
-    const newTodo = await todoApi.createTodo(title.value);
+    const newTodo = await todoApi.createTodo(title.value.trim());
 
     todos.value.push(newTodo);
     title.value = "";
   } catch (error) {
-    errorMessage.value = 'Unable to add todo';
+    errorMessage.value.show('Unable to add todos');
   }
 }
 
@@ -44,7 +43,7 @@ const deleteTodo = async todoId => {
     await todoApi.deleteTodo(todoId);
     todos.value = todos.value.filter(todo => todoId !== todo.id);
   } catch (error) {
-    errorMessage.value = 'Unable to delete a todo';
+    errorMessage.value.show('Unable to delete a todo');
   }
 };
 
@@ -55,7 +54,7 @@ const updateTodo = async ({id, title, completed}) => {
 
     Object.assign(currentTodo, updatedTodo);
   } catch (error) {
-    errorMessage.value = 'Unable to update a todo';
+    errorMessage.value.show('Unable to update a todo');
   }
 };
 
@@ -91,7 +90,7 @@ const visibleTodos = computed(() => {
               class="todoapp__new-todo"
               placeholder="What needs to be done?"
               v-model="title"
-              @input="errorMessage = ''"
+              @input="errorMessage?.hide()"
           />
         </form>
       </header>
@@ -131,13 +130,12 @@ const visibleTodos = computed(() => {
 
     <!-- DON'T use conditional rendering to hide the notification -->
     <!-- Add the 'hidden' class to hide the message smoothly -->
-    <Message class="is-danger" :hidden="!errorMessage">
+    <Message class="is-danger" ref="errorMessage">
       <template #header>
         <p>Server Error</p>
       </template>
-
-      <template #default>
-        <p>{{ errorMessage }}</p>
+      <template #default="{ text }">
+        <p>{{ text }}</p>
       </template>
     </Message>
   </div>
