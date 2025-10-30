@@ -3,14 +3,19 @@ import { ref, onMounted, computed } from "vue";
 import StatusFilter from "@/components/StatusFilter.vue";
 import TodoItem from "@/components/TodoItem.vue";
 import * as todoApi from '@/api/todos';
+import Message from "@/components/Message.vue";
 
 const todos = ref([]);
 const title = ref("");
-const errorMessage = ref("");
+const errorMessage = ref(null);
 const status = ref("all");
 
 onMounted(async () => {
-  todos.value = await todoApi.getTodos();
+  try {
+    todos.value = await todoApi.getTodos();
+  } catch (error) {
+    errorMessage.value.show('Unable to load todos');
+  }
 });
 
 const activeTodos = computed(() =>
@@ -18,29 +23,40 @@ const activeTodos = computed(() =>
 );
 
 const addTodo = async () => {
-  if (!title.value) {
-    errorMessage.value = "Title should not be empty";
-
+  if (title.value.trim().length < 1) {
+    errorMessage.value.show('Title should not be empty');
     return;
   }
-  const newTodo = await todoApi.createTodo(title.value);
 
-  todos.value.push(newTodo);
-  title.value = "";
+  try {
+    const newTodo = await todoApi.createTodo(title.value.trim());
+
+    todos.value.push(newTodo);
+    title.value = "";
+  } catch (error) {
+    errorMessage.value.show('Unable to add todos');
+  }
 }
 
 const deleteTodo = async todoId => {
-  await todoApi.deleteTodo(todoId);
-  todos.value = todos.value.filter(todo => todoId !== todo.id);
+  try {
+    await todoApi.deleteTodo(todoId);
+    todos.value = todos.value.filter(todo => todoId !== todo.id);
+  } catch (error) {
+    errorMessage.value.show('Unable to delete a todo');
+  }
 };
 
 const updateTodo = async ({id, title, completed}) => {
-  const updatedTodo = await todoApi.updateTodo({id, title, completed});
-  const currentTodo = todos.value.find(todo => todo.id === id);
+  try {
+    const updatedTodo = await todoApi.updateTodo({id, title, completed});
+    const currentTodo = todos.value.find(todo => todo.id === id);
 
-  Object.assign(currentTodo, updatedTodo);
+    Object.assign(currentTodo, updatedTodo);
+  } catch (error) {
+    errorMessage.value.show('Unable to update a todo');
+  }
 };
-
 
 const visibleTodos = computed(() => {
   if (status.value === "active") {
@@ -74,7 +90,7 @@ const visibleTodos = computed(() => {
               class="todoapp__new-todo"
               placeholder="What needs to be done?"
               v-model="title"
-              @input="errorMessage = ''"
+              @input="errorMessage?.hide()"
           />
         </form>
       </header>
@@ -114,13 +130,14 @@ const visibleTodos = computed(() => {
 
     <!-- DON'T use conditional rendering to hide the notification -->
     <!-- Add the 'hidden' class to hide the message smoothly -->
-    <div
-        v-if="errorMessage"
-        class="notification is-danger is-light has-text-weight-normal"
-    >
-      <button type="button" class="delete" @click="errorMessage = ''"></button>
-      {{ errorMessage }}
-    </div>
+    <Message class="is-danger" ref="errorMessage">
+      <template #header>
+        <p>Server Error</p>
+      </template>
+      <template #default="{ text }">
+        <p>{{ text }}</p>
+      </template>
+    </Message>
   </div>
 </template>
 
